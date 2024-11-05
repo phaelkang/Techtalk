@@ -17,27 +17,6 @@
             color: white;
             font-family: 'YouandiNewKr title', sans-serif;
         }
-        :root {
-            --title-spacing: 112px;
-        }
-        #title {
-            position: absolute;
-            top: 40px;
-            left: 60px;
-            font-size: 36px;
-            text-align: left;
-            line-height: 0.6;
-            font-weight: bold;
-        }
-        #Sub-title {
-            position: absolute;
-            top: calc(40px + 36px + var(--title-spacing));
-            left: 60px;
-            font-size: 18px;
-            text-align: left;
-            line-height: 0.6;
-            font-weight: medium;
-        }
         #Program {
             position: absolute;
             top: 40px;
@@ -48,13 +27,14 @@
             font-weight: bold;
         }
         #slot-machine {
-            text-align: center;
-            font-weight: bold;
-            margin-top: 80px;
-            position: absolute;
-            top: 42%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+          text-align: center;
+          font-weight: bold;
+          margin-top: 80px;
+          position: absolute;
+          top: 42%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 960px; /* 가로 크기 고정 */
         }
         .slot-frame {
             display: inline-block;
@@ -86,14 +66,7 @@
 </head>
 <body>
     <div id="Program">LUCKY DRAW EVENT</div>
-    <div id="title">
-      <br>2024</br>
-      <br>현대카드</br>
-      <br>TECH TALK</br>
-    </div>
-    <div id="Sub-title">
-      <br>SMALL TALK ABOUT BIG STEP</br>
-    </div>
+
     <div id="slot-machine">
         <div class="slot-frame"><div class="slot" id="hundreds">7</div></div>
         <div class="slot-frame"><div class="slot" id="tens">7</div></div>
@@ -107,6 +80,7 @@
             const onesSlot = document.getElementById("ones");
 
             let isSpinning = false;
+            let currentSlot = 0;
             let hundredsInterval, tensInterval, onesInterval;
 
             function startSpin(element) {
@@ -117,34 +91,40 @@
                 }, 100);
             }
 
-            function stopSlot(element, finalValue, intervalId, delay) {
-                setTimeout(() => {
-                    clearInterval(intervalId);
-                    element.classList.remove('spin');
-                    element.textContent = finalValue;
-                }, delay);
+            function stopSlot(element, finalValue, intervalId) {
+                clearInterval(intervalId);
+                element.classList.remove('spin');
+                element.textContent = finalValue;
             }
 
             document.addEventListener("keydown", (event) => {
-                if (event.key === "Enter" && !isSpinning) {
-                    isSpinning = true;
+                if (event.key === "Enter") {
+                    if (!isSpinning && currentSlot === 0) {
+                        // Start spinning all slots
+                        isSpinning = true;
 
-                    const randomNumber = Math.floor(Math.random() * 270) + 1;
-                    const hundreds = Math.floor(randomNumber / 100);
-                    const tens = Math.floor((randomNumber % 100) / 10);
-                    const ones = randomNumber % 10;
+                        hundredsInterval = startSpin(hundredsSlot);
+                        tensInterval = startSpin(tensSlot);
+                        onesInterval = startSpin(onesSlot);
 
-                    hundredsInterval = startSpin(hundredsSlot);
-                    tensInterval = startSpin(tensSlot);
-                    onesInterval = startSpin(onesSlot);
-
-                    stopSlot(onesSlot, ones, onesInterval, 5000);
-                    stopSlot(tensSlot, tens, tensInterval, 5500);
-                    stopSlot(hundredsSlot, hundreds, hundredsInterval, 6000);
-
-                    setTimeout(() => {
+                        currentSlot = 1; // Move to the ones slot
+                    } else if (currentSlot === 1) {
+                        // Stop ones slot
+                        const ones = Math.floor(Math.random() * 10);
+                        stopSlot(onesSlot, ones, onesInterval);
+                        currentSlot = 2; // Move to the tens slot
+                    } else if (currentSlot === 2) {
+                        // Stop tens slot
+                        const tens = Math.floor(Math.random() * 10);
+                        stopSlot(tensSlot, tens, tensInterval);
+                        currentSlot = 3; // Move to the hundreds slot
+                    } else if (currentSlot === 3) {
+                        // Stop hundreds slot with values from 0 to 2 only
+                        const hundreds = Math.floor(Math.random() * 3); // 0 to 2
+                        stopSlot(hundredsSlot, hundreds, hundredsInterval);
+                        currentSlot = 0; // Reset to initial state for next spin
                         isSpinning = false;
-                    }, 6500);
+                    }
                 }
             });
         });
